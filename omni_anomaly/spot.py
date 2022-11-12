@@ -10,7 +10,7 @@ Created on Mon Dec 12 10:08:16 2016
 
 from math import log, floor
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tqdm

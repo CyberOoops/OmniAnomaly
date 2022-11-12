@@ -185,6 +185,8 @@ def main():
                         'latency': t[-1],
                         'threshold': th
                     })
+                    with open("result.txt", "a") as f:
+                        f.write("%s best-f1 %f with p %f and r %f" %(config.dataset, t[0], t[1], t[2]))
                     best_valid_metrics.update(pot_result)
                 results.update_metrics(best_valid_metrics)
 
