@@ -33,6 +33,10 @@ def get_data_dim(dataset):
         return 55
     elif str(dataset).startswith('machine'):
         return 38
+    elif dataset == 'SWaT':
+        return 51
+    elif dataset == 'WADI':
+        return 119
     else:
         raise ValueError('unknown dataset '+str(dataset))
 
@@ -72,32 +76,46 @@ def get_data(dataset, max_train_size=None, max_test_size=None, print_log=True, d
     except (KeyError, FileNotFoundError):
         test_label = None
     if do_preprocess:
-        train_data = preprocess(train_data)
-        test_data = preprocess(test_data)
+        train_data, test_data = preprocess(train_data, test_data, valid_portion=0)
     print("train set shape: ", train_data.shape)
     print("test set shape: ", test_data.shape)
     print("test set label shape: ", test_label.shape)
     return (train_data, None), (test_data, test_label)
 
 
-def preprocess(df):
-    """returns normalized and standardized data.
-    """
+def preprocess(train, test, valid_portion=0):
+    train = np.asarray(train, dtype=np.float32)
+    test = np.asarray(test, dtype=np.float32)
 
-    df = np.asarray(df, dtype=np.float32)
-
-    if len(df.shape) == 1:
+    if len(train.shape) == 1 or len(test.shape) == 1:
         raise ValueError('Data must be a 2-D array')
 
-    if np.any(sum(np.isnan(df)) != 0):
-        print('Data contains null values. Will be replaced with 0')
-        df = np.nan_to_num()
+    if np.any(sum(np.isnan(train)) != 0):
+        print('Train data contains null values. Will be replaced with 0')
+        train = np.nan_to_num(train)
 
-    # normalize data
-    df = MinMaxScaler().fit_transform(df)
-    print('Data normalized')
+    if np.any(sum(np.isnan(test)) != 0):
+        print('Test data contains null values. Will be replaced with 0')
+        test = np.nan_to_num(test)
 
-    return df
+    # revise here for other preprocess methods
+    if valid_portion > 0:
+        split_idx = int(len(train) * valid_portion)
+        train, valid = train[:-split_idx], train[-split_idx:]
+        scaler = MinMaxScaler().fit(train)
+        train = scaler.transform(train)
+        valid = scaler.transform(valid)
+        valid = np.clip(valid, a_min=-3.0, a_max=3.0)
+        test = scaler.transform(test)
+        test = np.clip(test, a_min=-3.0, a_max=3.0)
+        train = np.concatenate([train, valid], axis=0)
+        print('Data normalized with min-max scaler')
+    else:
+        scaler = MinMaxScaler().fit(train)
+        train = scaler.transform(train)
+        test = scaler.transform(test)
+        test = np.clip(test, a_min=-3.0, a_max=3.0)
+        print('Data normalized with min-max scaler')
 
 
 def minibatch_slices_iterator(length, batch_size,

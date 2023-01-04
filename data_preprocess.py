@@ -67,7 +67,7 @@ def load_data(dataset):
 
 
 if __name__ == '__main__':
-    datasets = ['SMD', 'SMAP', 'MSL']
+    datasets = ['SMD', 'SMAP', 'MSL', 'WADI', 'SWaT']
     commands = sys.argv[1:]
     load = []
     if len(commands) > 0:
