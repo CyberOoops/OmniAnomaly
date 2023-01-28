@@ -23,7 +23,7 @@ from omni_anomaly.utils import get_data_dim, get_data, save_z
 
 class ExpConfig(Config):
     # dataset configuration
-    dataset = "machine-1-1"
+    dataset = "WADI"
     x_dim = get_data_dim(dataset)
 
     # model architecture configuration
@@ -164,6 +164,8 @@ def main():
                         train_score = np.sum(train_score, axis=-1)
 
                     # get best f1
+                    np.savetxt("./%s_score"%config.dataset, test_score, delimiter=',', fmt='%.8f')
+                    np.savetxt("./%s_label"%config.dataset, y_test[-len(test_score):], delimiter=',', fmt='%.8f')
                     t, th = bf_search(test_score, y_test[-len(test_score):],
                                       start=config.bf_search_min,
                                       end=config.bf_search_max,
@@ -185,6 +187,7 @@ def main():
                         'latency': t[-1],
                         'threshold': th
                     })
+                    print(best_valid_metrics)
                     with open("result.txt", "a") as f:
                         f.write("%s best-f1 %f with p %f and r %f" %(config.dataset, t[0], t[1], t[2]))
                     best_valid_metrics.update(pot_result)
